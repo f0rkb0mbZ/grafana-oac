@@ -1,0 +1,23 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Install snap
+      ansible.builtin.apt:
+        name:
+          - snapd
+        state: present
+    - name: Install certbot snap package
+      community.general.snap:
+        name: certbot
+        classic: true
+    - name: Create symlink of snap binary
+      ansible.builtin.file:
+        src: /snap/bin/certbot
+        dest: /usr/bin/certbot
+        mode: "0755"
+        state: link
+    - name: Install certificate
+      ansible.builtin.shell:
+        cmd: certbot --non-interactive --agree-tos -d {{ domain_name }} -m {{ email }} --nginx
+      register: exit_code
+      failed_when: exit_code.rc != 0

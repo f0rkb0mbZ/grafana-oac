@@ -1,0 +1,41 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Download loki
+      ansible.builtin.get_url:
+        url: https://github.com/grafana/loki/releases/download/v2.7.6/loki-linux-amd64.zip
+        dest: /tmp/loki.zip
+        mode: "0644"
+    - name: Install zip as dependency
+      ansible.builtin.apt:
+        name:
+          - zip
+          - unzip
+        state: present
+    - name: Extract loki
+      ansible.builtin.unarchive:
+        src: /tmp/loki.zip
+        dest: /tmp
+        remote_src: true
+    - name: Copy loki
+      ansible.builtin.copy:
+        src: /tmp/loki-linux-amd64
+        dest: /usr/local/bin/loki
+        mode: "0755"
+        remote_src: true
+    - name: Copy loki configuration
+      ansible.builtin.template:
+        src: templates/loki-gcs.yml.j2
+        dest: /usr/local/bin/loki-gcs.yml
+        mode: "0644"
+    - name: Copy loki systemd unit file
+      ansible.builtin.template:
+        src: templates/loki.service.j2
+        dest: /etc/systemd/system/loki.service
+        mode: "0644"
+    - name: Reload systemd, enable and start loki
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        enabled: true
+        state: started
+        name: loki

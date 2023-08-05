@@ -1,0 +1,37 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  replication_factor: 1
+  path_prefix: /loki
+  storage:
+    gcs:
+      bucket_name: {{ gcs_bucket_name }}
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2023-08-01
+      store: boltdb-shipper
+      object_store: gcs
+      schema: v11
+      index:
+        prefix: loki_index_
+        period: 24h
+
+storage_config:
+  gcs:
+    bucket_name: {{ gcs_bucket_name }}
+
+  boltdb_shipper:
+    shared_store: gcs
+    active_index_directory: /loki/index
+    cache_location: /loki/boltdb-cache
+
+compactor:
+  working_directory: /loki/compactor
+  shared_store: gcs

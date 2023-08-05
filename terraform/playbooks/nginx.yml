@@ -1,0 +1,32 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name:
+          - nginx
+        state: present
+    - name: Delete default configurations
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - /etc/nginx/sites-available/default
+        - /etc/nginx/sites-enabled/default
+    - name: Copy proxy configuration
+      ansible.builtin.template:
+        src: templates/proxy.conf.j2
+        dest: /etc/nginx/sites-available/proxy.conf
+        mode: "0644"
+    - name: Create symlink to sites-enabled
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/proxy.conf
+        dest: /etc/nginx/sites-enabled/proxy.conf
+        mode: "0644"
+        state: link
+    - name: Restart nginx service
+      ansible.builtin.systemd_service:
+        name: nginx
+        daemon_reload: true
+        enabled: true
+        state: restarted

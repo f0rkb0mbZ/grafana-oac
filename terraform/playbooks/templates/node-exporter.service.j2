@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus node exporter service
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user_id }}
+Group={{ ansible_user_id }}
+ExecStart=/usr/local/bin/node_exporter
+WorkingDirectory=/usr/local/bin
+Restart=always
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

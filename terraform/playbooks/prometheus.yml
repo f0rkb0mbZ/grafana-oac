@@ -1,0 +1,82 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Download prometheus
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
+        dest: /tmp/prometheus.tar.gz
+        mode: "0664"
+
+    - name: Extract the prometheus binary
+      ansible.builtin.unarchive:
+        src: /tmp/prometheus.tar.gz
+        dest: /tmp
+        remote_src: true
+
+    - name: Copy the prometheus binary to /usr/local/bin
+      ansible.builtin.copy:
+        remote_src: true
+        src: /tmp/prometheus-2.45.0.linux-amd64/prometheus
+        dest: /usr/local/bin/prometheus
+        mode: "0755"
+
+    - name: Test prometheus install
+      ansible.builtin.command: prometheus --version
+      register: exit_code
+      failed_when: exit_code.rc != 0
+
+    - name: Copy prometheus configuration
+      ansible.builtin.template:
+        src: templates/prometheus.yml.j2
+        dest: /usr/local/bin/prometheus.yml
+        mode: "0644"
+
+    - name: Download node_exporter
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
+        dest: /tmp/node_exporter.tar.gz
+        mode: "0664"
+
+    - name: Extract the node_exporter binary
+      ansible.builtin.unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /tmp
+        remote_src: true
+
+    - name: Copy the node_exporter binary to /usr/local/bin
+      ansible.builtin.copy:
+        remote_src: true
+        src: /tmp/node_exporter-1.6.1.linux-amd64/node_exporter
+        dest: /usr/local/bin/node_exporter
+        mode: "0755"
+
+    - name: Test node_exporter install
+      ansible.builtin.command: node_exporter --version
+      register: exit_code
+      failed_when: exit_code.rc != 0
+
+    - name: Copy node_exporter systemd unit file
+      ansible.builtin.template:
+        src: templates/node-exporter.service.j2
+        dest: /etc/systemd/system/node-exporter.service
+        mode: "0644"
+
+    - name: Reload systemd, enable and start node_exporter
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        enabled: true
+        state: started
+        name: node-exporter
+
+    - name: Copy prometheus systemd unit file
+      ansible.builtin.template:
+        src: templates/prometheus.service.j2
+        dest: /etc/systemd/system/prometheus.service
+        mode: "0644"
+
+    - name: Reload systemd, enable and start prometheus
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        enabled: true
+        state: started
+        name: prometheus

@@ -1,0 +1,27 @@
+- hosts: all
+  become: true
+  roles:
+    - role: oefenweb.swapfile
+      swapfile_size: 2G
+      swapfile_swappiness: 20
+  vars:
+    packages:
+      - apt-transport-https
+      - software-properties-common
+      - wget
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: yes
+
+    - name: Install grafana prerequisites
+      ansible.builtin.apt:
+        name: "{{packages}}"
+        state: present
+
+    - name: Reboot after upgrade
+      reboot:

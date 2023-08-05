@@ -1,0 +1,10 @@
+- name: Prerequisites
+  import_playbook: prerequisites.yml
+- name: Install grafana
+  import_playbook: grafana.yml
+- name: Install prometheus
+  import_playbook: prometheus.yml
+- name: Install loki
+  import_playbook: loki.yml
+- name: Install nginx
+  import_playbook: nginx.yml
