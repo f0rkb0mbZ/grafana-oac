@@ -2,7 +2,7 @@
 
 This is a companion repository of my talk on the same mentioned above.
 
-Slide Deck: [link](bit.ly/45co2ge)
+Slide Deck: [link](https://bit.ly/45co2ge)
 
 ## Prerequisites
 1. Replace the default values in `variables.tf` with your own configuration, e.g. replace <your_cloudflare_api_token> with the actual token.
